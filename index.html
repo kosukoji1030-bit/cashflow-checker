@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資金繰りチェッカー | いつ危ないか、いつ動くべきか</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* ========== ヘッダー ========== */
+  .header {
+    background: #E8822A;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header h1 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+
+  .header-sub {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ========== レイアウト ========== */
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    min-height: calc(100vh - 70px);
+  }
+
+  /* ========== 入力パネル ========== */
+  .input-panel {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+  }
+
+  .input-panel h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+  }
+
+  .input-group input, .input-group select {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 10px 12px;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    text-align: right;
+  }
+
+  .input-group input:focus, .input-group select:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  .input-unit {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  .input-section-title {
+    font-size: 0.78rem;
+    color: #666;
+    border-bottom: 1px solid #333;
+    padding-bottom: 6px;
+    margin: 24px 0 14px;
+    letter-spacing: 0.08em;
+  }
+
+  .defense-line-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-calc {
+    width: 100%;
+    background: #E8822A;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 1rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 24px;
+    transition: background 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-calc:hover {
+    background: #d4741f;
+  }
+
+  /* ========== 季節変動 ========== */
+  .btn-season {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+
+  .btn-season:hover {
+    background: #444;
+  }
+
+  .btn-season.active {
+    background: #E8822A;
+    border-color: #E8822A;
+    color: #fff;
+  }
+
+  .season-preview {
+    display: flex;
+    gap: 2px;
+    margin: 10px 0 4px;
+    height: 36px;
+    align-items: flex-end;
+  }
+
+  .season-bar {
+    flex: 1;
+    background: #E8822A;
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    min-height: 4px;
+    opacity: 0.7;
+  }
+
+  .season-bar-label {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  .season-bar-pct {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    color: #999;
+    white-space: nowrap;
+  }
+
+  .monthly-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .monthly-cell {
+    text-align: center;
+  }
+
+  .monthly-cell label {
+    display: block;
+    font-size: 0.65rem;
+    color: #888;
+    margin-bottom: 3px;
+  }
+
+  .monthly-cell input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 5px 2px;
+    color: #e0e0e0;
+    font-size: 0.78rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    text-align: center;
+  }
+
+  .monthly-cell input:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  /* ========== 臨時支出 ========== */
+  .extra-list {
+    margin-top: 8px;
+  }
+
+  .extra-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 28px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .extra-row input, .extra-row select {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 7px 8px;
+    color: #e0e0e0;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .extra-row select {
+    text-align: center;
+    padding: 7px 4px;
+  }
+
+  .extra-row input:focus, .extra-row select:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  .btn-extra-del {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .btn-extra-del:hover { color: #f44336; }
+
+  .btn-extra-add {
+    background: #333;
+    color: #aaa;
+    border: 1px dashed #555;
+    border-radius: 4px;
+    padding: 7px;
+    font-size: 0.75rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .btn-extra-add:hover { background: #3a3a3a; color: #ccc; }
+
+  /* ========== シミュレーションスライダー ========== */
+  .sim-slider-container {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .sim-slider-container h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 20px;
+  }
+
+  .sim-slider-group {
+    margin-bottom: 24px;
+  }
+
+  .sim-slider-group:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .sim-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .sim-slider-label {
+    font-size: 0.82rem;
+    color: #aaa;
+  }
+
+  .sim-slider-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .sim-slider-value.negative { color: #f44336; }
+  .sim-slider-value.zero { color: #888; }
+  .sim-slider-value.positive { color: #4CAF50; }
+
+  .sim-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #333;
+    outline: none;
+  }
+
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #E8822A;
+    cursor: pointer;
+    border: 2px solid #1a1a1a;
+  }
+
+  .sim-slider-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.6rem;
+    color: #555;
+  }
+
+  .sim-compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-top: 20px;
+    padding: 20px;
+    background: #1a1a1a;
+    border-radius: 6px;
+  }
+
+  .sim-compare-box {
+    text-align: center;
+  }
+
+  .sim-compare-label {
+    font-size: 0.72rem;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .sim-compare-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .sim-compare-sub {
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .sim-compare-arrow {
+    font-size: 1.5rem;
+    color: #555;
+  }
+
+  .sim-compare-diff {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  .sim-compare-diff.danger {
+    background: rgba(244, 67, 54, 0.08);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.2);
+  }
+
+  .sim-compare-diff.warning {
+    background: rgba(255, 152, 0, 0.08);
+    color: #FF9800;
+    border: 1px solid rgba(255, 152, 0, 0.2);
+  }
+
+  .sim-compare-diff.safe {
+    background: rgba(76, 175, 80, 0.08);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+  }
+
+  /* ========== 結果パネル ========== */
+  .result-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* 今月いくら使える */
+  .budget-card {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+    text-align: center;
+    border: 1px solid #333;
+  }
+
+  .budget-card-title {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 8px;
+  }
+
+  .budget-card-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #E8822A;
+    line-height: 1.2;
+  }
+
+  .budget-card-unit {
+    font-size: 1rem;
+    color: #888;
+    font-weight: 300;
+  }
+
+  .budget-card-detail {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: #777;
+    line-height: 1.8;
+  }
+
+  /* アラートカード */
+  .alert-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .alert-card {
+    background: #242424;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    border-top: 3px solid #333;
+  }
+
+  .alert-card.safe { border-top-color: #4CAF50; }
+  .alert-card.warning { border-top-color: #FF9800; }
+  .alert-card.danger { border-top-color: #f44336; }
+
+  .alert-card-label {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .alert-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .alert-card.safe .alert-card-value { color: #4CAF50; }
+  .alert-card.warning .alert-card-value { color: #FF9800; }
+  .alert-card.danger .alert-card-value { color: #f44336; }
+
+  .alert-card-sub {
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 6px;
+  }
+
+  /* 健康診断スコア */
+  .score-card {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    border-left: 5px solid #333;
+  }
+
+  .score-card.score-A { border-left-color: #4CAF50; }
+  .score-card.score-B { border-left-color: #8BC34A; }
+  .score-card.score-C { border-left-color: #FF9800; }
+  .score-card.score-D { border-left-color: #f44336; }
+  .score-card.score-E { border-left-color: #b71c1c; }
+
+  .score-grade {
+    font-size: 3.2rem;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .score-card.score-A .score-grade { color: #4CAF50; }
+  .score-card.score-B .score-grade { color: #8BC34A; }
+  .score-card.score-C .score-grade { color: #FF9800; }
+  .score-card.score-D .score-grade { color: #f44336; }
+  .score-card.score-E .score-grade { color: #b71c1c; }
+
+  .score-detail {
+    flex: 1;
+  }
+
+  .score-title {
+    font-size: 0.78rem;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .score-message {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+
+  .score-sub {
+    font-size: 0.75rem;
+    color: #777;
+    margin-top: 6px;
+    line-height: 1.6;
+  }
+
+  .score-bar-wrap {
+    display: flex;
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .score-bar-seg {
+    height: 6px;
+    border-radius: 3px;
+    flex: 1;
+  }
+
+  /* グラフ */
+  .chart-container {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .chart-container h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 20px;
+  }
+
+  .chart {
+    position: relative;
+    height: 320px;
+    border-left: 1px solid #444;
+    border-bottom: 1px solid #444;
+    margin-top: 10px;
+  }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    gap: 4px;
+    padding: 0 8px;
+  }
+
+  .chart-bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .chart-bar {
+    width: 100%;
+    max-width: 52px;
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    transition: height 0.5s ease;
+    min-height: 2px;
+  }
+
+  .chart-bar.safe { background: linear-gradient(180deg, #4CAF50, #2E7D32); }
+  .chart-bar.warning { background: linear-gradient(180deg, #FF9800, #E65100); }
+  .chart-bar.danger { background: linear-gradient(180deg, #f44336, #c62828); }
+
+  .chart-bar-value {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.68rem;
+    color: #aaa;
+    white-space: nowrap;
+  }
+
+  .chart-bar-label {
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .chart-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed;
+    z-index: 2;
+  }
+
+  .chart-line-label {
+    position: absolute;
+    right: 4px;
+    top: -16px;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  .chart-line.line-danger {
+    border-color: rgba(244, 67, 54, 0.5);
+  }
+  .chart-line.line-danger .chart-line-label {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+  }
+
+  .chart-line.line-warning {
+    border-color: rgba(255, 152, 0, 0.5);
+  }
+  .chart-line.line-warning .chart-line-label {
+    color: #FF9800;
+    background: rgba(255, 152, 0, 0.1);
+  }
+
+  /* アクションカード */
+  .action-container {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .action-container h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 20px;
+  }
+
+  .action-list {
+    list-style: none;
+  }
+
+  .action-item {
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .action-item:last-child { margin-bottom: 0; }
+
+  .action-item.safe { background: rgba(76, 175, 80, 0.08); border-left: 3px solid #4CAF50; }
+  .action-item.warning { background: rgba(255, 152, 0, 0.08); border-left: 3px solid #FF9800; }
+  .action-item.danger { background: rgba(244, 67, 54, 0.08); border-left: 3px solid #f44336; }
+
+  .action-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .action-text {
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  .action-text strong {
+    font-weight: 500;
+  }
+
+  /* シミュレーション */
+  .sim-container {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .sim-container h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 20px;
+  }
+
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .sim-card {
+    background: #1a1a1a;
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  .sim-card-label {
+    font-size: 0.78rem;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .sim-card-value {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #e0e0e0;
+  }
+
+  .sim-card-value span {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 300;
+  }
+
+  /* 経費詳細トグル */
+  .btn-detail-toggle {
+    background: none;
+    border: none;
+    color: #E8822A;
+    font-size: 0.75rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    padding: 4px 0;
+    margin-top: 2px;
+  }
+  .btn-detail-toggle:hover { text-decoration: underline; }
+
+  .detail-inputs {
+    background: #1e1e1e;
+    border-radius: 6px;
+    padding: 14px;
+    margin-top: 8px;
+  }
+
+  .detail-inputs .input-group {
+    margin-bottom: 12px;
+  }
+
+  .detail-inputs .input-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-row {
+    display: grid;
+    grid-template-columns: 1fr 24px 90px 28px;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .btn-cat-help {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 50%;
+    color: #E8822A;
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 20px;
+    text-align: center;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .btn-cat-help:hover { background: #444; }
+
+  .detail-row select {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 9px 8px;
+    color: #e0e0e0;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+
+  .detail-row select:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  .detail-row input {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 9px 8px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    text-align: right;
+  }
+
+  .detail-row input:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  .detail-total {
+    text-align: right;
+    font-size: 0.78rem;
+    color: #E8822A;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #333;
+  }
+
+  /* ========== 資金繰り表 ========== */
+  .cf-table-container {
+    background: #242424;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .cf-table-container h2 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #E8822A;
+    margin-bottom: 6px;
+  }
+
+  .btn-cf-toggle {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .btn-cf-toggle:hover { background: #3a3a3a; }
+
+  .cf-table-wrap {
+    overflow-x: auto;
+    margin-top: 16px;
+  }
+
+  .cf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    min-width: 900px;
+  }
+
+  .cf-table th, .cf-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #2a2a2a;
+    text-align: right;
+  }
+
+  .cf-table th:first-child, .cf-table td:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: #242424;
+    z-index: 1;
+    min-width: 140px;
+  }
+
+  .cf-table thead th {
+    color: #E8822A;
+    font-weight: 500;
+    border-bottom: 2px solid #444;
+    background: #242424;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .cf-table thead th:first-child {
+    z-index: 3;
+  }
+
+  .cf-table .cf-section-head td {
+    color: #999;
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    padding-top: 14px;
+    border-bottom: 1px solid #444;
+  }
+
+  .cf-table .cf-subtotal td {
+    font-weight: 500;
+    border-top: 1px solid #444;
+    color: #ccc;
+  }
+
+  .cf-table .cf-balance td {
+    font-weight: 700;
+    border-top: 2px solid #555;
+    font-size: 0.82rem;
+  }
+
+  .cf-table .cf-balance td.safe { color: #4CAF50; }
+  .cf-table .cf-balance td.warning { color: #FF9800; }
+  .cf-table .cf-balance td.danger { color: #f44336; }
+
+  .cf-table .cf-extra-mark {
+    color: #FF9800;
+    font-size: 0.65rem;
+  }
+
+  /* 科目ヘルプ */
+  .category-help {
+    display: none;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 6px;
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: #bbb;
+  }
+
+  .category-help-title {
+    color: #E8822A;
+    font-weight: 500;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+
+  .category-help-examples {
+    color: #999;
+  }
+
+  /* 写真読み取り */
+  .ocr-section {
+    border: 1px dashed #444;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .ocr-section-title {
+    font-size: 0.8rem;
+    color: #E8822A;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .ocr-drop {
+    background: #1a1a1a;
+    border: 2px dashed #333;
+    border-radius: 6px;
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+
+  .ocr-drop:hover, .ocr-drop.dragover {
+    border-color: #E8822A;
+  }
+
+  .ocr-drop-text {
+    font-size: 0.78rem;
+    color: #777;
+    line-height: 1.6;
+  }
+
+  .ocr-drop input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .ocr-preview {
+    margin-top: 10px;
+    max-height: 120px;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .ocr-preview img {
+    width: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .ocr-status {
+    font-size: 0.75rem;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .ocr-status.loading { color: #E8822A; }
+  .ocr-status.success { color: #4CAF50; }
+  .ocr-status.error { color: #f44336; }
+
+  .btn-ocr {
+    background: #E8822A;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 9px 16px;
+    font-size: 0.82rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    margin-top: 10px;
+    display: none;
+  }
+  .btn-ocr:hover { background: #d4741f; }
+
+  .ocr-apikey-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .ocr-apikey-row input {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: #e0e0e0;
+    font-size: 0.78rem;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .ocr-apikey-row input:focus {
+    outline: none;
+    border-color: #E8822A;
+  }
+
+  .ocr-result-list {
+    text-align: left;
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 8px;
+    line-height: 1.8;
+  }
+
+  .ocr-result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .ocr-result-item span:last-child {
+    color: #e0e0e0;
+    font-weight: 500;
+  }
+
+  /* 初期状態 */
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: #555;
+    font-size: 0.95rem;
+    text-align: center;
+    line-height: 2;
+  }
+
+  /* ========== スマホ対応 ========== */
+  @media (max-width: 768px) {
+    .app {
+      grid-template-columns: 1fr;
+      padding: 16px;
+    }
+
+    .input-panel {
+      position: static;
+    }
+
+    .alert-cards {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .chart {
+      height: 240px;
+    }
+
+    .budget-card-value {
+      font-size: 2rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>資金繰りチェッカー</h1>
+    <div class="header-sub">いつ危ないか、いつ動くべきか</div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- 入力パネル -->
+  <div class="input-panel">
+    <h2>基本情報を入力</h2>
+
+    <div class="ocr-section">
+      <div class="ocr-section-title">試算表・決算書から自動入力</div>
+      <div class="ocr-apikey-row">
+        <input type="password" id="geminiApiKey" placeholder="Gemini APIキー" value="">
+      </div>
+      <div class="ocr-drop" id="ocrDrop">
+        <div class="ocr-drop-text">試算表の写真をここに<br>ドロップまたはタップ</div>
+        <input type="file" accept="image/*,.pdf" onchange="handleOcrFile(this.files[0])">
+      </div>
+      <div class="ocr-preview" id="ocrPreview" style="display:none;"></div>
+      <button class="btn-ocr" id="ocrBtn" onclick="runOcr()">読み取り開始</button>
+      <div class="ocr-status" id="ocrStatus"></div>
+      <div class="ocr-result-list" id="ocrResultList" style="display:none;"></div>
+    </div>
+
+    <div class="input-group">
+      <label>今の現金残高</label>
+      <input type="text" id="cash" placeholder="10,000" inputmode="numeric">
+      <div class="input-unit">千円</div>
+    </div>
+
+    <div class="input-section-title">毎月の収入</div>
+    <div class="input-group">
+      <label>月間売上（平均）</label>
+      <input type="text" id="revenue" placeholder="3,000" inputmode="numeric">
+      <div class="input-unit">千円/月</div>
+    </div>
+
+    <div class="input-section-title">毎月の支出</div>
+    <div class="input-group">
+      <label>家賃</label>
+      <input type="text" id="rent" placeholder="200" inputmode="numeric">
+      <div class="input-unit">千円/月</div>
+    </div>
+    <div class="input-group">
+      <label>人件費</label>
+      <input type="text" id="salary" placeholder="800" inputmode="numeric">
+      <div class="input-unit">千円/月</div>
+    </div>
+    <div class="input-group">
+      <label>仕入れ</label>
+      <input type="text" id="purchase" placeholder="1,200" inputmode="numeric">
+      <div class="input-unit">千円/月</div>
+    </div>
+    <div class="input-group">
+      <label>借入返済</label>
+      <input type="text" id="loan" placeholder="150" inputmode="numeric">
+      <div class="input-unit">千円/月</div>
+    </div>
+    <div id="simpleOther">
+      <div class="input-group">
+        <label>その他固定費（光熱費・通信費等）</label>
+        <input type="text" id="other" placeholder="200" inputmode="numeric">
+        <div class="input-unit">千円/月</div>
+      </div>
+      <button class="btn-detail-toggle" onclick="toggleDetail(true)">▼ 科目ごとに入力する</button>
+    </div>
+    <div id="detailOther" style="display:none;">
+      <button class="btn-detail-toggle" onclick="toggleDetail(false)">▲ まとめて入力に戻す</button>
+      <div class="detail-inputs">
+        <div class="detail-row-list" id="detailRowList"></div>
+        <button class="btn-extra-add" onclick="addDetailRow()">＋ 科目を追加</button>
+        <div class="detail-total" id="detailTotal">合計: 0 千円/月</div>
+      </div>
+    </div>
+
+    <div class="input-section-title">臨時支出（税金・保険・設備など）</div>
+    <div class="extra-list" id="extraList"></div>
+    <button class="btn-extra-add" onclick="addExtraRow()">＋ 臨時支出を追加</button>
+
+    <div class="input-section-title">月別の売上調整（季節変動）</div>
+    <div style="margin-bottom:10px;">
+      <button class="btn-season" onclick="applyPattern('flat')">均一</button>
+      <button class="btn-season" onclick="applyPattern('cosucoji')">コスコジ型</button>
+      <button class="btn-season" onclick="applyPattern('apparel')">アパレル型</button>
+      <button class="btn-season" onclick="applyPattern('restaurant')">飲食店型</button>
+      <button class="btn-season" onclick="applyPattern('beauty')">美容・サービス型</button>
+      <button class="btn-season" onclick="applyPattern('juku')">学習塾型</button>
+      <button class="btn-season" onclick="applyPattern('retail')">小売型</button>
+      <button class="btn-season" onclick="toggleMonthly()">手動で調整</button>
+    </div>
+    <div class="season-preview" id="seasonPreview"></div>
+    <div class="monthly-grid" id="monthlyGrid" style="display:none;"></div>
+
+    <div class="input-section-title">防衛ライン</div>
+    <div class="defense-line-inputs">
+      <div class="input-group">
+        <label>警戒ライン</label>
+        <input type="text" id="lineWarning" placeholder="10,000" inputmode="numeric">
+        <div class="input-unit">千円</div>
+      </div>
+      <div class="input-group">
+        <label>危険ライン</label>
+        <input type="text" id="lineDanger" placeholder="6,000" inputmode="numeric">
+        <div class="input-unit">千円</div>
+      </div>
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">チェックする</button>
+  </div>
+
+  <!-- 結果パネル -->
+  <div class="result-panel" id="resultPanel">
+    <div class="placeholder">
+      左の項目を入力して<br>「チェックする」を押してください
+    </div>
+  </div>
+</div>
+
+<script>
+// 季節変動パターン（売上の倍率）
+const patterns = {
+  flat:      [100,100,100,100,100,100,100,100,100,100,100,100],
+  cosucoji:  [84,69,96,167,93,98,93,73,69,135,119,104],
+  apparel:   [115,75,95,100,95,80,120,70,100,110,110,130],
+  restaurant:[103,84,108,108,96,86,98,88,98,101,103,127],
+  beauty:    [85,80,125,115,95,90,110,95,105,110,115,150],
+  juku:      [120,90,110,95,85,90,115,150,95,90,90,130],
+  retail:    [95,90,98,100,105,100,105,110,98,100,105,124]
+};
+
+let monthlyRates = [...patterns.flat];
+let monthlyGridVisible = false;
+
+// ========== 臨時支出 ==========
+let extraExpenses = []; // [{name, amount, monthIndex}]
+
+function getMonthLabels() {
+  const now = new Date();
+  const labels = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    labels.push((d.getMonth() + 1) + '月');
+  }
+  return labels;
+}
+
+function getMonthIndices() {
+  const now = new Date();
+  const indices = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    indices.push(d.getMonth());
+  }
+  return indices;
+}
+
+function addExtraRow(name, amount, monthIdx) {
+  const labels = getMonthLabels();
+  extraExpenses.push({ name: name || '', amount: amount || 0, monthIndex: monthIdx || 0 });
+  renderExtraList();
+}
+
+function removeExtraRow(idx) {
+  extraExpenses.splice(idx, 1);
+  renderExtraList();
+}
+
+function renderExtraList() {
+  const labels = getMonthLabels();
+  const container = document.getElementById('extraList');
+  let html = '';
+  extraExpenses.forEach((ex, i) => {
+    let opts = '';
+    labels.forEach((l, mi) => {
+      opts += `<option value="${mi}" ${ex.monthIndex === mi ? 'selected' : ''}>${l}</option>`;
+    });
+    html += `<div class="extra-row">
+      <input type="text" placeholder="内容と金額（例: 税金 500）" value="${ex.name ? ex.name + (ex.amount ? ' ' + ex.amount : '') : ''}"
+        onchange="parseExtraInput(${i}, this.value)">
+      <select onchange="extraExpenses[${i}].monthIndex=parseInt(this.value)">${opts}</select>
+      <button class="btn-extra-del" onclick="removeExtraRow(${i})">×</button>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function parseExtraInput(idx, val) {
+  // 「税金 500」「保険500」のようなパターンを解析
+  const match = val.match(/^(.+?)\s*([0-9,，]+)\s*$/);
+  if (match) {
+    extraExpenses[idx].name = match[1].trim();
+    extraExpenses[idx].amount = parseInt(match[2].replace(/[,，]/g, '')) || 0;
+  } else {
+    extraExpenses[idx].name = val;
+    extraExpenses[idx].amount = 0;
+  }
+}
+
+// ========== 経費詳細モード ==========
+let detailMode = false;
+const accountCategories = [
+  '水道光熱費',
+  '通信費',
+  '広告宣伝費',
+  '保険料',
+  '支払手数料',
+  'リース料',
+  '消耗品費',
+  '車両費',
+  '旅費交通費',
+  '接待交際費',
+  '租税公課',
+  '修繕費',
+  '外注費',
+  '諸会費',
+  '雑費',
+  'その他'
+];
+
+const categoryHelp = {
+  '水道光熱費': '電気代、ガス代、水道代。店舗・事務所で使う光熱費すべて',
+  '通信費': '電話代、インターネット回線、携帯電話、FAX、切手・はがき代',
+  '広告宣伝費': 'チラシ・DM印刷、ニューズレター送料、看板、ネット広告、ホームページ費用',
+  '保険料': '店舗の火災保険、賠償責任保険、自動車保険、PL保険',
+  '支払手数料': 'クレジットカード決済手数料、振込手数料、代引き手数料',
+  'リース料': 'コピー機、POSレジ、業務用ソフト（月額）、レンタル機器',
+  '消耗品費': '文房具、包装資材、袋、ハンガー、掃除用品、電球、10万円未満の備品',
+  '車両費': 'ガソリン代、駐車場代、車検・整備代、高速代',
+  '旅費交通費': '電車・バス代、展示会への交通費、出張時の宿泊費',
+  '接待交際費': '取引先との食事、お中元・お歳暮、スタッフとの慰労会',
+  '租税公課': '消費税、固定資産税、印紙代、自動車税、個人事業税',
+  '修繕費': '店舗の修理、エアコン修理、設備の修理・メンテナンス',
+  '外注費': '清掃業者、税理士・社労士への顧問料、デザイン外注、業務委託',
+  '諸会費': '商工会議所、業界団体、商店街の組合費',
+  '雑費': 'どの科目にも当てはまらない少額の支出。新聞・書籍、ゴミ処理など',
+  'その他': '上の科目に当てはまらないもの'
+};
+
+let detailRows = []; // [{category, amount}]
+
+function toggleDetail(show) {
+  detailMode = show;
+  document.getElementById('simpleOther').style.display = show ? 'none' : 'block';
+  document.getElementById('detailOther').style.display = show ? 'block' : 'none';
+  if (show) {
+    if (detailRows.length === 0) {
+      // まとめ入力の値があれば「その他」として1行作る
+      const currentOther = document.getElementById('other').value.replace(/[,，\s]/g, '');
+      if (currentOther && parseInt(currentOther) > 0) {
+        detailRows.push({ category: 'その他', amount: parseInt(currentOther) });
+      } else {
+        addDetailRow();
+      }
+    }
+    renderDetailRows();
+  } else {
+    const total = calcDetailTotal();
+    if (total > 0) {
+      document.getElementById('other').value = total.toLocaleString();
+    }
+  }
+}
+
+function addDetailRow() {
+  detailRows.push({ category: accountCategories[0], amount: 0 });
+  renderDetailRows();
+}
+
+function removeDetailRow(idx) {
+  detailRows.splice(idx, 1);
+  renderDetailRows();
+}
+
+function renderDetailRows() {
+  const container = document.getElementById('detailRowList');
+  let html = '';
+  detailRows.forEach((row, i) => {
+    let opts = accountCategories.map(c =>
+      `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`
+    ).join('');
+    const dispVal = row.amount > 0 ? row.amount.toLocaleString() : '';
+    html += `<div class="detail-row">
+      <select onchange="detailRows[${i}].category=this.value">${opts}</select>
+      <button class="btn-cat-help" onclick="toggleCategoryHelp(${i})">?</button>
+      <input type="text" value="${dispVal}" placeholder="0" inputmode="numeric"
+        onblur="parseDetailAmount(${i}, this)" oninput="parseDetailAmountLive(${i}, this)">
+      <button class="btn-extra-del" onclick="removeDetailRow(${i})">×</button>
+    </div>
+    <div class="category-help" id="catHelp${i}">
+      <div class="category-help-title" id="catHelpTitle${i}"></div>
+      <div class="category-help-examples" id="catHelpEx${i}"></div>
+    </div>`;
+  });
+  container.innerHTML = html;
+  updateDetailTotal();
+}
+
+function toggleCategoryHelp(idx) {
+  const el = document.getElementById('catHelp' + idx);
+  if (el.style.display === 'block') {
+    el.style.display = 'none';
+    return;
+  }
+  // 全部閉じてから対象を開く
+  document.querySelectorAll('.category-help').forEach(e => e.style.display = 'none');
+  const category = detailRows[idx].category;
+  document.getElementById('catHelpTitle' + idx).textContent = category;
+  document.getElementById('catHelpEx' + idx).textContent = categoryHelp[category] || '';
+  el.style.display = 'block';
+}
+
+function parseDetailAmount(idx, el) {
+  const val = el.value.replace(/[,，\s]/g, '');
+  const num = parseInt(val) || 0;
+  detailRows[idx].amount = num;
+  if (num > 0) el.value = num.toLocaleString();
+  updateDetailTotal();
+}
+
+function parseDetailAmountLive(idx, el) {
+  const val = el.value.replace(/[,，\s]/g, '');
+  detailRows[idx].amount = parseInt(val) || 0;
+  updateDetailTotal();
+}
+
+function calcDetailTotal() {
+  return detailRows.reduce((sum, r) => sum + (r.amount || 0), 0);
+}
+
+function updateDetailTotal() {
+  const total = calcDetailTotal();
+  document.getElementById('detailTotal').textContent = '合計: ' + total.toLocaleString() + ' 千円/月';
+}
+
+function applyPattern(name) {
+  const indices = getMonthIndices();
+  const pattern = patterns[name];
+  monthlyRates = indices.map(idx => pattern[idx]);
+  document.querySelectorAll('.btn-season').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderSeasonPreview();
+  renderMonthlyGrid();
+}
+
+function toggleMonthly() {
+  monthlyGridVisible = !monthlyGridVisible;
+  document.getElementById('monthlyGrid').style.display = monthlyGridVisible ? 'grid' : 'none';
+  const btns = document.querySelectorAll('.btn-season');
+  btns[btns.length - 1].classList.toggle('active', monthlyGridVisible);
+}
+
+function renderSeasonPreview() {
+  const labels = getMonthLabels();
+  const maxRate = Math.max(...monthlyRates);
+  const container = document.getElementById('seasonPreview');
+  let html = '';
+  monthlyRates.forEach((rate, i) => {
+    const h = Math.max((rate / maxRate) * 32, 4);
+    html += `<div class="season-bar" style="height:${h}px">
+      <span class="season-bar-pct">${rate}%</span>
+      <span class="season-bar-label">${labels[i]}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderMonthlyGrid() {
+  const labels = getMonthLabels();
+  const container = document.getElementById('monthlyGrid');
+  let html = '';
+  monthlyRates.forEach((rate, i) => {
+    html += `<div class="monthly-cell">
+      <label>${labels[i]}</label>
+      <input type="text" value="${rate}" onchange="updateRate(${i}, this.value)" inputmode="numeric">
+      <div style="font-size:0.6rem;color:#666;margin-top:2px">%</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function updateRate(index, value) {
+  monthlyRates[index] = parseInt(value) || 100;
+  renderSeasonPreview();
+}
+
+// ========== データ保存・復元（localStorage） ==========
+const SAVE_KEY = 'cashflow_checker_data';
+
+function saveData() {
+  const data = {
+    cash: document.getElementById('cash').value,
+    revenue: document.getElementById('revenue').value,
+    rent: document.getElementById('rent').value,
+    salary: document.getElementById('salary').value,
+    purchase: document.getElementById('purchase').value,
+    loan: document.getElementById('loan').value,
+    other: document.getElementById('other').value,
+    lineWarning: document.getElementById('lineWarning').value,
+    lineDanger: document.getElementById('lineDanger').value,
+    monthlyRates: monthlyRates,
+    extraExpenses: extraExpenses,
+    detailMode: detailMode,
+    detailRows: detailRows
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+}
+
+function loadData() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    const fields = ['cash','revenue','rent','salary','purchase','loan','other','lineWarning','lineDanger'];
+    fields.forEach(id => {
+      if (data[id]) document.getElementById(id).value = data[id];
+    });
+    if (data.monthlyRates) monthlyRates = data.monthlyRates;
+    if (data.extraExpenses && data.extraExpenses.length > 0) {
+      extraExpenses = data.extraExpenses;
+      renderExtraList();
+    }
+    if (data.detailRows && data.detailRows.length > 0) {
+      detailRows = data.detailRows;
+    }
+    if (data.detailMode) {
+      toggleDetail(true);
+    }
+  } catch(e) {}
+}
+
+loadData();
+renderSeasonPreview();
+
+// 数値フォーマット
+function formatNum(n) {
+  return Math.round(n).toLocaleString();
+}
+
+function parseInput(id) {
+  const val = document.getElementById(id).value.replace(/[,，\s]/g, '');
+  return parseInt(val) || 0;
+}
+
+// カンマ自動挿入
+document.querySelectorAll('input[inputmode="numeric"]').forEach(input => {
+  input.addEventListener('blur', function() {
+    const val = this.value.replace(/[,，\s]/g, '');
+    if (val && !isNaN(val)) {
+      this.value = parseInt(val).toLocaleString();
+    }
+  });
+});
+
+function calculate() {
+  const cash = parseInput('cash');
+  const revenue = parseInput('revenue');
+  const rent = parseInput('rent');
+  const salary = parseInput('salary');
+  const purchase = parseInput('purchase');
+  const loan = parseInput('loan');
+  const other = detailMode ? calcDetailTotal() : parseInput('other');
+  const lineWarning = parseInput('lineWarning');
+  const lineDanger = parseInput('lineDanger');
+
+  if (cash === 0) {
+    alert('現金残高を入力してください');
+    return;
+  }
+
+  saveData();
+
+  const fixedExpense = rent + salary + loan + other;
+
+  // 臨時支出を月別に集計
+  const extraByMonth = new Array(12).fill(0);
+  let totalExtra = 0;
+  extraExpenses.forEach(ex => {
+    if (ex.amount > 0 && ex.monthIndex >= 0 && ex.monthIndex < 12) {
+      extraByMonth[ex.monthIndex] += ex.amount;
+      totalExtra += ex.amount;
+    }
+  });
+
+  // 12ヶ月分の残高を計算
+  const months = [];
+  const now = new Date();
+  let balance = cash;
+  let dangerMonth = null;
+  let warningMonth = null;
+  let totalRevenue12 = 0;
+  let totalExpense12 = 0;
+
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    const monthLabel = (d.getMonth() + 1) + '月';
+    const rate = monthlyRates[i] / 100;
+    const monthRevenue = Math.round(revenue * rate);
+    const monthPurchase = Math.round(purchase * rate);
+    const monthExpense = fixedExpense + monthPurchase + extraByMonth[i];
+    const monthlyBalance = monthRevenue - monthExpense;
+    balance = balance + monthlyBalance;
+    totalRevenue12 += monthRevenue;
+    totalExpense12 += monthExpense;
+
+    let status = 'safe';
+    if (lineDanger > 0 && balance <= lineDanger) {
+      status = 'danger';
+      if (!dangerMonth) dangerMonth = { month: i + 1, label: monthLabel, balance: balance };
+    } else if (lineWarning > 0 && balance <= lineWarning) {
+      status = 'warning';
+      if (!warningMonth) warningMonth = { month: i + 1, label: monthLabel, balance: balance };
+    }
+
+    months.push({
+      label: monthLabel,
+      balance: balance,
+      status: status,
+      revenue: monthRevenue,
+      expense: monthExpense,
+      monthlyBalance: monthlyBalance,
+      rate: monthlyRates[i],
+      extra: extraByMonth[i]
+    });
+  }
+
+  const avgMonthlyBalance = Math.round((totalRevenue12 - totalExpense12) / 12);
+  const totalExpenseAvg = Math.round(totalExpense12 / 12);
+
+  // 結果パネル生成
+  const panel = document.getElementById('resultPanel');
+  let html = '';
+
+  // === 損益分岐点の計算 ===
+  // 固定費（売上に関係なくかかる）= 家賃 + 人件費 + 借入返済 + その他 + 臨時(月割)
+  const monthlyFixedTotal = fixedExpense + Math.round(totalExtra / 12);
+  // 変動費率（売上に連動する割合）= 仕入れ ÷ 売上
+  const variableRatio = revenue > 0 ? purchase / revenue : 0;
+  // 損益分岐点売上 = 固定費 ÷ (1 - 変動費率)
+  const breakEvenRevenue = variableRatio < 1 ? Math.round(monthlyFixedTotal / (1 - variableRatio)) : 0;
+
+  // === 健康診断スコア ===
+  const totalMonthlyOut = fixedExpense + purchase;
+  const survivalMonths = totalMonthlyOut > 0 ? Math.floor(cash / totalMonthlyOut) : 99;
+  const finalBalance = months[11].balance;
+  const finalClass = (lineDanger > 0 && finalBalance <= lineDanger) ? 'danger' :
+                     (lineWarning > 0 && finalBalance <= lineWarning) ? 'warning' : 'safe';
+
+  let scoreGrade, scoreMsg, scoreSub;
+  if (survivalMonths >= 6 && avgMonthlyBalance > 0 && !dangerMonth && !warningMonth) {
+    scoreGrade = 'A';
+    scoreMsg = '経営は安定しています';
+    scoreSub = '現金に余裕があり、黒字が続く見込みです。今の形を守りながら、次の一手を考える余裕があります。';
+  } else if (survivalMonths >= 3 && avgMonthlyBalance >= 0 && !dangerMonth) {
+    scoreGrade = 'B';
+    scoreMsg = '安定していますが、油断は禁物です';
+    scoreSub = '黒字ですが、現金の厚みがもう少し欲しいところ。売上が下がったときの備えを意識してください。';
+  } else if (avgMonthlyBalance >= 0 && (warningMonth || survivalMonths < 3)) {
+    scoreGrade = 'C';
+    scoreMsg = '黒字ですが、注意が必要です';
+    scoreSub = '利益は出ていますが、現金の余裕が薄い状態です。臨時支出や売上の落ち込みに弱いので、支出の見直しを。';
+  } else if (avgMonthlyBalance < 0 && !dangerMonth) {
+    scoreGrade = 'D';
+    scoreMsg = '赤字です。早めに手を打ってください';
+    scoreSub = '毎月現金が減っています。仕入れの見直し、固定費の削減、借入の検討など、具体的なアクションが必要です。';
+  } else {
+    scoreGrade = 'E';
+    scoreMsg = '危険な状態です。すぐに動いてください';
+    scoreSub = '数ヶ月以内に危険ラインを割る見込みです。支出の大幅カット、緊急の借入、事業の縮小など、今すぐ判断が必要です。';
+  }
+
+  const barColors = { A: '#4CAF50', B: '#8BC34A', C: '#FF9800', D: '#f44336', E: '#b71c1c' };
+  const grades = ['A','B','C','D','E'];
+  const gradeIdx = grades.indexOf(scoreGrade);
+
+  // === アラートカード ===
+  html += '<div class="alert-cards">';
+
+  // 1. 損益分岐点
+  if (breakEvenRevenue > 0) {
+    const overBE = revenue - breakEvenRevenue;
+    const beClass = overBE > 0 ? 'safe' : 'danger';
+    html += `<div class="alert-card ${beClass}">
+      <div class="alert-card-label">損益分岐点売上</div>
+      <div class="alert-card-value">${formatNum(breakEvenRevenue)}</div>
+      <div class="alert-card-sub">千円/月（${overBE > 0 ? '+' + formatNum(overBE) + '千円の余裕' : formatNum(overBE) + '千円 不足'}）</div>
+    </div>`;
+  }
+
+  // 2. 平均月間収支
+  const balanceClass = avgMonthlyBalance >= 0 ? 'safe' : (avgMonthlyBalance >= -200 ? 'warning' : 'danger');
+  html += `<div class="alert-card ${balanceClass}">
+    <div class="alert-card-label">平均月間収支</div>
+    <div class="alert-card-value">${avgMonthlyBalance >= 0 ? '+' : ''}${formatNum(avgMonthlyBalance)}</div>
+    <div class="alert-card-sub">千円/月</div>
+  </div>`;
+
+  // 3. 固定費の何ヶ月分あるか
+  const survivalClass = survivalMonths >= 6 ? 'safe' : survivalMonths >= 3 ? 'warning' : 'danger';
+  html += `<div class="alert-card ${survivalClass}">
+    <div class="alert-card-label">今の現金で生きられる</div>
+    <div class="alert-card-value">${survivalMonths}ヶ月</div>
+    <div class="alert-card-sub">売上ゼロでも</div>
+  </div>`;
+
+  // 4. 危険ラインまで
+  if (lineDanger > 0) {
+    if (dangerMonth) {
+      html += `<div class="alert-card danger">
+        <div class="alert-card-label">危険ラインまで</div>
+        <div class="alert-card-value">あと${dangerMonth.month}ヶ月</div>
+        <div class="alert-card-sub">${dangerMonth.label}に割る</div>
+      </div>`;
+    } else if (avgMonthlyBalance < 0) {
+      const monthsToLine = Math.floor((cash - lineDanger) / Math.abs(avgMonthlyBalance));
+      html += `<div class="alert-card warning">
+        <div class="alert-card-label">危険ラインまで</div>
+        <div class="alert-card-value">約${monthsToLine}ヶ月</div>
+        <div class="alert-card-sub">このペースなら</div>
+      </div>`;
+    } else {
+      html += `<div class="alert-card safe">
+        <div class="alert-card-label">危険ラインまで</div>
+        <div class="alert-card-value">安全</div>
+        <div class="alert-card-sub">12ヶ月以内OK</div>
+      </div>`;
+    }
+  }
+
+  // 5. 12ヶ月後の残高
+  html += `<div class="alert-card ${finalClass}">
+    <div class="alert-card-label">12ヶ月後の現金</div>
+    <div class="alert-card-value">${formatNum(finalBalance)}</div>
+    <div class="alert-card-sub">千円</div>
+  </div>`;
+
+  html += '</div>';
+
+  // === グラフ ===
+  function toMan(v) { return Math.round(v / 10).toLocaleString(); }
+
+  const allValues = [cash, ...months.map(m => m.balance)];
+  if (lineWarning > 0) allValues.push(lineWarning);
+  if (lineDanger > 0) allValues.push(lineDanger);
+  const dataMax = Math.max(...allValues);
+  const dataMin = Math.min(...allValues);
+  const chartBase = Math.max(0, Math.floor(dataMin * 0.7));
+  const chartTop = dataMax * 1.1;
+  const chartRange = chartTop - chartBase;
+  const chartHeight = 320;
+
+  function barH(v) { return Math.max(((Math.max(v, 0) - chartBase) / chartRange) * chartHeight, 2); }
+  function lineY(v) { return (1 - (v - chartBase) / chartRange) * chartHeight; }
+
+  html += '<div class="chart-container">';
+  html += '<h2>12ヶ月の現金残高推移</h2>';
+  if (chartBase > 0) {
+    html += `<div style="font-size:0.72rem;color:#666;margin-bottom:8px;">※ グラフの下端は${toMan(chartBase)}万円（変化を見やすくしています）</div>`;
+  }
+  html += '<div class="chart">';
+
+  if (lineWarning > 0) {
+    const wY = lineY(lineWarning);
+    html += `<div class="chart-line line-warning" style="top:${wY}px">
+      <span class="chart-line-label">警戒 ${toMan(lineWarning)}万</span>
+    </div>`;
+  }
+  if (lineDanger > 0) {
+    const dY = lineY(lineDanger);
+    html += `<div class="chart-line line-danger" style="top:${dY}px">
+      <span class="chart-line-label">危険 ${toMan(lineDanger)}万</span>
+    </div>`;
+  }
+
+  html += '<div class="chart-bars">';
+
+  const currentClass = (lineDanger > 0 && cash <= lineDanger) ? 'danger' :
+                       (lineWarning > 0 && cash <= lineWarning) ? 'warning' : 'safe';
+  html += `<div class="chart-bar-group">
+    <div class="chart-bar ${currentClass}" style="height:${barH(cash)}px">
+      <div class="chart-bar-value">${toMan(cash)}万</div>
+    </div>
+    <div class="chart-bar-label">現在</div>
+  </div>`;
+
+  months.forEach(m => {
+    html += `<div class="chart-bar-group">
+      <div class="chart-bar ${m.status}" style="height:${barH(m.balance)}px">
+        <div class="chart-bar-value">${toMan(m.balance)}万</div>
+      </div>
+      <div class="chart-bar-label">${m.label}${m.extra > 0 ? '*' : ''}</div>
+    </div>`;
+  });
+
+  html += '</div></div>';
+
+  // 臨時支出がある月に注記
+  const extraMonthLabels = [];
+  months.forEach(m => { if (m.extra > 0) extraMonthLabels.push(m.label); });
+  if (extraMonthLabels.length > 0) {
+    html += `<div style="font-size:0.7rem;color:#888;margin-top:8px;">* ${extraMonthLabels.join('・')}に臨時支出あり</div>`;
+  }
+
+  html += '</div>';
+
+  // === 資金繰り表（折りたたみ） ===
+  html += '<div class="cf-table-container">';
+  html += '<button class="btn-cf-toggle" id="cfToggleBtn" onclick="toggleCfTable()">月別の内訳を見る（資金繰り表）</button>';
+  html += '<div class="cf-table-wrap" id="cfTableWrap" style="display:none;">';
+  html += '<table class="cf-table">';
+
+  // ヘッダー
+  html += '<thead><tr><th></th>';
+  html += '<th>現在</th>';
+  months.forEach(m => { html += `<th>${m.label}</th>`; });
+  html += '</tr></thead>';
+
+  html += '<tbody>';
+
+  // --- 繰越 ---
+  html += '<tr class="cf-section-head"><td>繰越</td>';
+  html += `<td></td>`;
+  months.forEach(() => { html += '<td></td>'; });
+  html += '</tr>';
+
+  html += '<tr><td>前月繰越金</td>';
+  html += `<td>${formatNum(cash)}</td>`;
+  months.forEach((m, i) => {
+    const prev = i === 0 ? cash : months[i-1].balance;
+    html += `<td>${formatNum(prev)}</td>`;
+  });
+  html += '</tr>';
+
+  // --- 収入 ---
+  html += '<tr class="cf-section-head"><td>収入</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += '<td></td>'; });
+  html += '</tr>';
+
+  html += '<tr><td>売上</td>';
+  html += '<td></td>';
+  months.forEach(m => { html += `<td>${formatNum(m.revenue)}</td>`; });
+  html += '</tr>';
+
+  // 収入合計
+  html += '<tr class="cf-subtotal"><td>収入合計</td>';
+  html += '<td></td>';
+  months.forEach(m => { html += `<td>${formatNum(m.revenue)}</td>`; });
+  html += '</tr>';
+
+  // --- 支出 ---
+  html += '<tr class="cf-section-head"><td>支出</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += '<td></td>'; });
+  html += '</tr>';
+
+  // 仕入れ（季節変動）
+  html += '<tr><td>仕入れ</td>';
+  html += '<td></td>';
+  months.forEach((m, i) => {
+    const mp = Math.round(purchase * monthlyRates[i] / 100);
+    html += `<td>${formatNum(mp)}</td>`;
+  });
+  html += '</tr>';
+
+  // 固定経費の内訳（詳細モード時は科目別、そうでなければまとめ）
+  html += '<tr><td>給与・人件費</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += `<td>${formatNum(salary)}</td>`; });
+  html += '</tr>';
+
+  html += '<tr><td>家賃</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += `<td>${formatNum(rent)}</td>`; });
+  html += '</tr>';
+
+  html += '<tr><td>借入返済</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += `<td>${formatNum(loan)}</td>`; });
+  html += '</tr>';
+
+  // その他固定費（詳細 or まとめ）
+  if (detailMode && detailRows.length > 0) {
+    detailRows.forEach(row => {
+      if (row.amount > 0) {
+        html += `<tr><td>${row.category}</td>`;
+        html += '<td></td>';
+        months.forEach(() => { html += `<td>${formatNum(row.amount)}</td>`; });
+        html += '</tr>';
+      }
+    });
+  } else {
+    html += '<tr><td>その他固定費</td>';
+    html += '<td></td>';
+    months.forEach(() => { html += `<td>${formatNum(other)}</td>`; });
+    html += '</tr>';
+  }
+
+  // 臨時支出
+  months.forEach((m, i) => {
+    if (m.extra > 0) {
+      const names = extraExpenses.filter(e => e.monthIndex === i && e.amount > 0).map(e => e.name || '臨時').join('・');
+      html += `<tr><td><span class="cf-extra-mark">臨時</span> ${names}</td>`;
+      html += '<td></td>';
+      months.forEach((_, j) => {
+        html += `<td>${j === i ? formatNum(m.extra) : ''}</td>`;
+      });
+      html += '</tr>';
+    }
+  });
+
+  // 支出合計
+  html += '<tr class="cf-subtotal"><td>支出合計</td>';
+  html += '<td></td>';
+  months.forEach(m => { html += `<td>${formatNum(m.expense)}</td>`; });
+  html += '</tr>';
+
+  // --- 収支 ---
+  html += '<tr class="cf-section-head"><td>収支</td>';
+  html += '<td></td>';
+  months.forEach(() => { html += '<td></td>'; });
+  html += '</tr>';
+
+  html += '<tr><td>当月収支</td>';
+  html += '<td></td>';
+  months.forEach(m => {
+    const color = m.monthlyBalance >= 0 ? 'color:#4CAF50' : 'color:#f44336';
+    html += `<td style="${color}">${m.monthlyBalance >= 0 ? '+' : ''}${formatNum(m.monthlyBalance)}</td>`;
+  });
+  html += '</tr>';
+
+  // --- 月末残高 ---
+  html += '<tr class="cf-balance"><td>月末残高</td>';
+  html += `<td>${formatNum(cash)}</td>`;
+  months.forEach(m => {
+    const cls = (lineDanger > 0 && m.balance <= lineDanger) ? 'danger' :
+                (lineWarning > 0 && m.balance <= lineWarning) ? 'warning' : 'safe';
+    html += `<td class="${cls}">${formatNum(m.balance)}</td>`;
+  });
+  html += '</tr>';
+
+  html += '</tbody></table>';
+  html += '</div></div>';
+
+  // === アクション提案 ===
+  html += '<div class="action-container">';
+  html += '<h2>いつ動くべきか</h2>';
+  html += '<ul class="action-list">';
+
+  const deficitMonths = months.filter(m => m.monthlyBalance < 0);
+
+  if (avgMonthlyBalance >= 0 && deficitMonths.length === 0) {
+    html += `<li class="action-item safe">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>全ての月で収支がプラスです。</strong><br>現金は増えていく見込み。急いで動く必要はありません。</div>
+    </li>`;
+  } else if (avgMonthlyBalance >= 0 && deficitMonths.length > 0) {
+    const deficitLabels = deficitMonths.map(m => m.label).join('・');
+    html += `<li class="action-item safe">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>年間では黒字ですが、${deficitLabels}は赤字月です。</strong><br>赤字月の前に現金を厚くしておくことが大切です。</div>
+    </li>`;
+  } else {
+    html += `<li class="action-item warning">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>平均で毎月${formatNum(Math.abs(avgMonthlyBalance))}千円ずつ減っています。</strong><br>このペースが続くと現金は減り続けます。</div>
+    </li>`;
+  }
+
+  if (dangerMonth) {
+    const actMonth = Math.max(dangerMonth.month - 3, 1);
+    const actDate = new Date(now.getFullYear(), now.getMonth() + actMonth, 1);
+    const actLabel = (actDate.getMonth() + 1) + '月';
+    html += `<li class="action-item danger">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>${dangerMonth.label}に危険ラインを割ります。${actLabel}には動き始めてください。</strong><br>仕入れの削減、固定費の見直し、借入の検討など、3ヶ月前からの準備が必要です。</div>
+    </li>`;
+  } else if (warningMonth) {
+    html += `<li class="action-item warning">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>${warningMonth.label}に警戒ラインに届きます。</strong><br>すぐに危険ではありませんが、支出の見直しを始める目安です。</div>
+    </li>`;
+  } else if (avgMonthlyBalance >= 0) {
+    html += `<li class="action-item safe">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>12ヶ月以内に防衛ラインに届く見込みはありません。</strong><br>今は守りを固めながら、やりたいことに集中してください。</div>
+    </li>`;
+  }
+
+  // 臨時支出の警告
+  if (totalExtra > 0) {
+    const extraItems = extraExpenses.filter(e => e.amount > 0).map(e => {
+      const ml = getMonthLabels()[e.monthIndex];
+      return `${ml}に${e.name || '臨時支出'} ${formatNum(e.amount)}千円`;
+    });
+    html += `<li class="action-item warning">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>臨時支出が合計${formatNum(totalExtra)}千円あります。</strong><br>${extraItems.join('、')}。<br>忘れがちな出費なので、その月の前に現金を確認してください。</div>
+    </li>`;
+  }
+
+  if (avgMonthlyBalance >= 0 && revenue > 0) {
+    const breakEvenDrop = avgMonthlyBalance;
+    const breakEvenDropPct = Math.round((breakEvenDrop / revenue) * 100);
+    html += `<li class="action-item warning">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>ただし、売上が平均で月${formatNum(breakEvenDrop)}千円（${breakEvenDropPct}%）下がると収支トントンになります。</strong><br>その余裕幅は頭に入れておいてください。</div>
+    </li>`;
+  }
+
+  const worstMonth = months.reduce((min, m) => m.monthlyBalance < min.monthlyBalance ? m : min, months[0]);
+  const bestMonth = months.reduce((max, m) => m.monthlyBalance > max.monthlyBalance ? m : max, months[0]);
+  if (worstMonth.rate !== bestMonth.rate) {
+    html += `<li class="action-item warning">
+      <div class="action-icon">&#9679;</div>
+      <div class="action-text"><strong>最も厳しい月は${worstMonth.label}（収支 ${worstMonth.monthlyBalance >= 0 ? '+' : ''}${formatNum(worstMonth.monthlyBalance)}千円）。</strong>最も好調な月は${bestMonth.label}（収支 +${formatNum(bestMonth.monthlyBalance)}千円）。<br>季節の波を把握して、厳しい月の前に備えてください。</div>
+    </li>`;
+  }
+
+  html += '</ul></div>';
+
+  // === 数字の見え方 ===
+  html += '<div class="sim-container">';
+  html += '<h2>数字の見え方</h2>';
+  html += '<div class="sim-grid">';
+
+  html += `<div class="sim-card">
+    <div class="sim-card-label">年間売上（季節変動込み）</div>
+    <div class="sim-card-value">${formatNum(totalRevenue12)} <span>千円</span></div>
+  </div>`;
+
+  html += `<div class="sim-card">
+    <div class="sim-card-label">年間支出合計</div>
+    <div class="sim-card-value">${formatNum(totalExpense12)} <span>千円</span></div>
+  </div>`;
+
+  html += `<div class="sim-card">
+    <div class="sim-card-label">年間収支</div>
+    <div class="sim-card-value" style="color:${totalRevenue12 - totalExpense12 >= 0 ? '#4CAF50' : '#f44336'}">${totalRevenue12 - totalExpense12 >= 0 ? '+' : ''}${formatNum(totalRevenue12 - totalExpense12)} <span>千円</span></div>
+  </div>`;
+
+  html += `<div class="sim-card">
+    <div class="sim-card-label">月間固定費（仕入れ除く）</div>
+    <div class="sim-card-value">${formatNum(fixedExpense)} <span>千円/月</span></div>
+  </div>`;
+
+  html += '</div></div>';
+
+  // === 売上・仕入れシミュレーションスライダー ===
+  html += '<div class="sim-slider-container">';
+  html += '<h2>もし売上や仕入れが変わったら？</h2>';
+
+  // 売上スライダー
+  html += `<div class="sim-slider-group">
+    <div class="sim-slider-header">
+      <span class="sim-slider-label">売上の変動</span>
+      <span class="sim-slider-value zero" id="simRevenueValue">±0%</span>
+    </div>
+    <input type="range" class="sim-slider" id="simRevenueSlider" min="-30" max="10" value="0" step="1"
+      oninput="updateDualSimulation()">
+    <div class="sim-slider-scale">
+      <span>-30%</span><span>-20%</span><span>-10%</span><span>±0</span><span>+10%</span>
+    </div>
+  </div>`;
+
+  // 仕入れスライダー
+  html += `<div class="sim-slider-group">
+    <div class="sim-slider-header">
+      <span class="sim-slider-label">仕入れの変動</span>
+      <span class="sim-slider-value zero" id="simPurchaseValue">±0%</span>
+    </div>
+    <input type="range" class="sim-slider" id="simPurchaseSlider" min="-30" max="10" value="0" step="1"
+      oninput="updateDualSimulation()">
+    <div class="sim-slider-scale">
+      <span>-30%</span><span>-20%</span><span>-10%</span><span>±0</span><span>+10%</span>
+    </div>
+  </div>`;
+
+  // 比較表示
+  html += `<div id="simResult">
+    <div class="sim-compare">
+      <div class="sim-compare-box">
+        <div class="sim-compare-label">現在の予測（12ヶ月後）</div>
+        <div class="sim-compare-value" style="color:${finalClass === 'danger' ? '#f44336' : finalClass === 'warning' ? '#FF9800' : '#4CAF50'}">${formatNum(finalBalance)}千円</div>
+        <div class="sim-compare-sub">変動なし</div>
+      </div>
+      <div class="sim-compare-arrow">→</div>
+      <div class="sim-compare-box">
+        <div class="sim-compare-label">シミュレーション後</div>
+        <div class="sim-compare-value" id="simFinalValue" style="color:${finalClass === 'danger' ? '#f44336' : finalClass === 'warning' ? '#FF9800' : '#4CAF50'}">${formatNum(finalBalance)}千円</div>
+        <div class="sim-compare-sub" id="simFinalSub">スライダーを動かしてください</div>
+      </div>
+    </div>
+    <div class="sim-compare-diff safe" id="simDiff" style="display:none;"></div>
+  </div>`;
+
+  html += '</div>';
+
+  // === 経営の健康診断（一番下） ===
+  html += `<div class="score-card score-${scoreGrade}">
+    <div class="score-grade">${scoreGrade}</div>
+    <div class="score-detail">
+      <div class="score-title">経営の健康診断</div>
+      <div class="score-message">${scoreMsg}</div>
+      <div class="score-sub">${scoreSub}</div>
+      <div class="score-bar-wrap">
+        ${grades.map((g, gi) => `<div class="score-bar-seg" style="background:${gi <= gradeIdx ? barColors[scoreGrade] : '#333'}"></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  // グローバルに保存（スライダー関数から参照）
+  window._simParams = { cash, revenue, fixedExpense, purchase, lineDanger, lineWarning, extraByMonth, finalBalance };
+
+  panel.innerHTML = html;
+}
+
+function toggleCfTable() {
+  const wrap = document.getElementById('cfTableWrap');
+  const btn = document.getElementById('cfToggleBtn');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    btn.textContent = '▲ 資金繰り表を閉じる';
+  } else {
+    wrap.style.display = 'none';
+    btn.textContent = '月別の内訳を見る（資金繰り表）';
+  }
+}
+
+function updateDualSimulation() {
+  const p = window._simParams;
+  if (!p) return;
+
+  const revPct = parseInt(document.getElementById('simRevenueSlider').value);
+  const purPct = parseInt(document.getElementById('simPurchaseSlider').value);
+
+  // 値の表示
+  const revEl = document.getElementById('simRevenueValue');
+  revEl.textContent = revPct === 0 ? '±0%' : (revPct > 0 ? '+' + revPct + '%' : revPct + '%');
+  revEl.className = 'sim-slider-value ' + (revPct < 0 ? 'negative' : revPct === 0 ? 'zero' : 'positive');
+
+  const purEl = document.getElementById('simPurchaseValue');
+  purEl.textContent = purPct === 0 ? '±0%' : (purPct > 0 ? '+' + purPct + '%' : purPct + '%');
+  purEl.className = 'sim-slider-value ' + (purPct < 0 ? 'positive' : purPct === 0 ? 'zero' : 'negative');
+
+  const revRate = 1 + revPct / 100;
+  const purRate = 1 + purPct / 100;
+
+  // シミュレーション計算
+  let balance = p.cash;
+  let simDangerMonth = null;
+
+  for (let i = 0; i < 12; i++) {
+    const rate = monthlyRates[i] / 100;
+    const monthRevenue = Math.round(p.revenue * rate * revRate);
+    const monthPurchase = Math.round(p.purchase * rate * purRate);
+    const monthExpense = p.fixedExpense + monthPurchase + p.extraByMonth[i];
+    balance = balance + monthRevenue - monthExpense;
+
+    if (p.lineDanger > 0 && balance <= p.lineDanger && !simDangerMonth) {
+      const d = new Date();
+      d.setMonth(d.getMonth() + i + 1);
+      simDangerMonth = { month: i + 1, label: (d.getMonth() + 1) + '月' };
+    }
+  }
+
+  const finalEl = document.getElementById('simFinalValue');
+  const subEl = document.getElementById('simFinalSub');
+  const diffEl = document.getElementById('simDiff');
+
+  const simColor = (p.lineDanger > 0 && balance <= p.lineDanger) ? '#f44336' :
+                   (p.lineWarning > 0 && balance <= p.lineWarning) ? '#FF9800' : '#4CAF50';
+  finalEl.style.color = simColor;
+  finalEl.textContent = formatNum(balance) + '千円';
+
+  if (revPct === 0 && purPct === 0) {
+    subEl.textContent = 'スライダーを動かしてください';
+    diffEl.style.display = 'none';
+    return;
+  }
+
+  const parts = [];
+  if (revPct !== 0) parts.push('売上' + (revPct > 0 ? '+' : '') + revPct + '%');
+  if (purPct !== 0) parts.push('仕入れ' + (purPct > 0 ? '+' : '') + purPct + '%');
+  subEl.textContent = parts.join('・') + 'の場合';
+
+  const diff = balance - p.finalBalance;
+  let diffClass, diffText;
+
+  if (p.lineDanger > 0 && balance <= p.lineDanger) {
+    diffClass = 'danger';
+    if (simDangerMonth) {
+      diffText = `${simDangerMonth.label}に危険ラインを割ります（残高${formatNum(balance)}千円、差額${formatNum(diff)}千円）`;
+    } else {
+      diffText = `12ヶ月後に危険ラインを割ります（残高${formatNum(balance)}千円、差額${formatNum(diff)}千円）`;
+    }
+  } else if (p.lineWarning > 0 && balance <= p.lineWarning) {
+    diffClass = 'warning';
+    diffText = `12ヶ月後に警戒ラインに届きます（残高${formatNum(balance)}千円、差額${formatNum(diff)}千円）`;
+  } else if (diff < 0) {
+    diffClass = 'warning';
+    diffText = `12ヶ月後の残高が${formatNum(Math.abs(diff))}千円減ります。まだ防衛ラインの上です`;
+  } else {
+    diffClass = 'safe';
+    diffText = `12ヶ月後の残高が+${formatNum(diff)}千円増えます`;
+  }
+
+  diffEl.className = 'sim-compare-diff ' + diffClass;
+  diffEl.textContent = diffText;
+  diffEl.style.display = 'block';
+}
+
+// ========== 写真読み取り（Gemini Vision API） ==========
+let ocrFileBase64 = null;
+let ocrFileMime = null;
+
+// APIキーのlocalStorage保存・復元
+const OCR_KEY_SAVE = 'cashflow_gemini_key';
+(function restoreApiKey() {
+  const saved = localStorage.getItem(OCR_KEY_SAVE);
+  if (saved) document.getElementById('geminiApiKey').value = saved;
+})();
+document.getElementById('geminiApiKey').addEventListener('blur', function() {
+  localStorage.setItem(OCR_KEY_SAVE, this.value);
+});
+
+// ドラッグ&ドロップ
+const ocrDrop = document.getElementById('ocrDrop');
+ocrDrop.addEventListener('dragover', e => { e.preventDefault(); ocrDrop.classList.add('dragover'); });
+ocrDrop.addEventListener('dragleave', () => ocrDrop.classList.remove('dragover'));
+ocrDrop.addEventListener('drop', e => {
+  e.preventDefault();
+  ocrDrop.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleOcrFile(e.dataTransfer.files[0]);
+});
+
+function handleOcrFile(file) {
+  if (!file) return;
+  const preview = document.getElementById('ocrPreview');
+  const btn = document.getElementById('ocrBtn');
+  const status = document.getElementById('ocrStatus');
+
+  ocrFileMime = file.type || 'image/jpeg';
+
+  // プレビュー表示
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.innerHTML = `<img src="${e.target.result}">`;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = `<div style="padding:12px;color:#aaa;font-size:0.78rem;">${file.name}</div>`;
+    preview.style.display = 'block';
+  }
+
+  // base64変換
+  const reader2 = new FileReader();
+  reader2.onload = e => {
+    const base64 = e.target.result.split(',')[1];
+    ocrFileBase64 = base64;
+    btn.style.display = 'inline-block';
+    status.textContent = '';
+    status.className = 'ocr-status';
+  };
+  reader2.readAsDataURL(file);
+}
+
+async function runOcr() {
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
+  if (!apiKey) {
+    alert('Gemini APIキーを入力してください');
+    return;
+  }
+  if (!ocrFileBase64) {
+    alert('写真をアップロードしてください');
+    return;
+  }
+
+  const status = document.getElementById('ocrStatus');
+  const btn = document.getElementById('ocrBtn');
+  const resultList = document.getElementById('ocrResultList');
+
+  status.textContent = '読み取り中...';
+  status.className = 'ocr-status loading';
+  btn.disabled = true;
+
+  const prompt = `この画像は小さなお店（アパレル等）の試算表または決算書です。
+以下の項目の金額を読み取ってください。金額は千円単位に変換してください（万円なら×10、円なら÷1000で四捨五入）。
+
+読み取る項目:
+- 月間売上（売上高・売上合計）
+- 家賃（地代家賃）
+- 人件費（給料手当・賞与・法定福利費・福利厚生費の合計）
+- 仕入れ（仕入高・商品仕入高）
+- 借入返済（長期借入金の返済額。※貸借対照表にある場合は月額を推定）
+- 水道光熱費
+- 通信費
+- 広告宣伝費
+- 保険料
+- 支払手数料
+- リース料（賃借料）
+- 消耗品費
+- 車両費（車両関連費）
+- 旅費交通費
+- 接待交際費
+- 租税公課
+- 修繕費
+- 外注費（業務委託費・支払報酬含む）
+- 諸会費
+- 雑費
+
+注意:
+- 減価償却費は除外してください（現金が動かない費用のため）
+- 貸倒引当金、貸倒損失も除外
+- 読み取れない項目は省略してOK
+- 月次の試算表なら1ヶ月分の金額、年間の決算書なら12で割って月額にしてください
+
+回答は必ず以下のJSON形式のみで返してください。他の説明は不要です:
+{"items":[{"name":"項目名","value":数値,"field":"対応するフィールドID"}]}
+
+field の対応:
+- 月間売上 → "revenue"
+- 家賃 → "rent"
+- 人件費 → "salary"
+- 仕入れ → "purchase"
+- 借入返済 → "loan"
+- それ以外の経費 → "detail:科目名"（例: "detail:水道光熱費"）`;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: ocrFileMime, data: ocrFileBase64 } }
+          ]
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`API エラー (${res.status}): ${err.substring(0, 100)}`);
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // JSONを抽出（```json ... ``` で囲まれている場合も対応）
+    const jsonMatch = text.match(/\{[\s\S]*"items"[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('読み取り結果をパースできませんでした');
+
+    const result = JSON.parse(jsonMatch[0]);
+    applyOcrResult(result.items);
+
+    status.textContent = '読み取り完了。入力欄に反映しました';
+    status.className = 'ocr-status success';
+
+  } catch (e) {
+    status.textContent = 'エラー: ' + e.message;
+    status.className = 'ocr-status error';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function applyOcrResult(items) {
+  if (!items || !items.length) return;
+
+  const resultList = document.getElementById('ocrResultList');
+  let html = '';
+  let detailItems = [];
+
+  items.forEach(item => {
+    const val = Math.round(item.value);
+    if (val <= 0) return;
+
+    html += `<div class="ocr-result-item"><span>${item.name}</span><span>${val.toLocaleString()} 千円</span></div>`;
+
+    if (item.field && !item.field.startsWith('detail:')) {
+      // 基本項目（売上・家賃・人件費・仕入れ・返済）
+      const el = document.getElementById(item.field);
+      if (el) el.value = val.toLocaleString();
+    } else if (item.field && item.field.startsWith('detail:')) {
+      // 経費詳細の科目
+      const catName = item.field.replace('detail:', '');
+      detailItems.push({ category: catName, amount: val });
+    }
+  });
+
+  // 経費詳細があれば詳細モードに切り替えて反映
+  if (detailItems.length > 0) {
+    detailRows = detailItems;
+    toggleDetail(true);
+    renderDetailRows();
+  }
+
+  resultList.innerHTML = html;
+  resultList.style.display = html ? 'block' : 'none';
+  saveData();
+}
+</script>
+
+</body>
+</html>
