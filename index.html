@@ -143,6 +143,38 @@
     background: #d4741f;
   }
 
+  /* ========== アドバイス ========== */
+  .advice-box {
+    background: #1e2a1e;
+    border-left: 3px solid #4CAF50;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+  }
+
+  .advice-box.warning {
+    background: #2a2518;
+    border-left-color: #FF9800;
+  }
+
+  .advice-box.danger {
+    background: #2a1a1a;
+    border-left-color: #f44336;
+  }
+
+  .advice-text {
+    font-size: 0.85rem;
+    color: #e0e0e0;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+  }
+
+  .advice-source {
+    font-size: 0.65rem;
+    color: #666;
+    margin-top: 6px;
+  }
+
   /* ========== 業種テンプレート ========== */
   .template-section {
     background: #1a1a1a;
@@ -1258,6 +1290,18 @@
           <span class="template-name">雑貨・小売店</span>
           <span class="template-sub">月商200万</span>
         </button>
+        <button class="btn-template" onclick="applyTemplate('wagashi')">
+          <span class="template-name">和菓子屋</span>
+          <span class="template-sub">製造販売・月商200万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('juku')">
+          <span class="template-name">学習塾</span>
+          <span class="template-sub">月商150万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('seitai')">
+          <span class="template-name">整体院</span>
+          <span class="template-sub">月商120万</span>
+        </button>
       </div>
     </div>
 
@@ -1468,6 +1512,63 @@ const templates = {
       { category: '消耗品費', amount: 40 },
       { category: '雑費', amount: 40 }
     ]
+  },
+  wagashi: {
+    name: '和菓子屋・製造販売（月商200万）',
+    cash: 5000,
+    revenue: 2000,
+    rent: 200,
+    salary: 600,
+    purchase: 700,
+    loan: 100,
+    lineWarning: 5000,
+    lineDanger: 3000,
+    season: 'retail',
+    detailRows: [
+      { category: '水道光熱費', amount: 80 },
+      { category: '通信費', amount: 10 },
+      { category: '広告宣伝費', amount: 30 },
+      { category: '消耗品費', amount: 50 },
+      { category: '雑費', amount: 30 }
+    ]
+  },
+  juku: {
+    name: '学習塾（月商150万）',
+    cash: 5000,
+    revenue: 1500,
+    rent: 150,
+    salary: 500,
+    purchase: 100,
+    loan: 50,
+    lineWarning: 5000,
+    lineDanger: 3000,
+    season: 'juku',
+    detailRows: [
+      { category: '水道光熱費', amount: 30 },
+      { category: '通信費', amount: 10 },
+      { category: '広告宣伝費', amount: 50 },
+      { category: '消耗品費', amount: 20 },
+      { category: '雑費', amount: 20 }
+    ]
+  },
+  seitai: {
+    name: '整体院（月商120万）',
+    cash: 4000,
+    revenue: 1200,
+    rent: 120,
+    salary: 300,
+    purchase: 60,
+    loan: 50,
+    lineWarning: 4000,
+    lineDanger: 2500,
+    season: 'beauty',
+    detailRows: [
+      { category: '水道光熱費', amount: 30 },
+      { category: '通信費', amount: 10 },
+      { category: '広告宣伝費', amount: 70 },
+      { category: '消耗品費', amount: 30 },
+      { category: '雑費', amount: 20 }
+    ]
   }
 };
 
@@ -1506,6 +1607,87 @@ function applyTemplate(key) {
   // 自動計算
   calculate();
 }
+
+// ========== アドバイス（森尾勝俊「中小企業の財務チャンネル」より） ==========
+const adviceData = {
+  // 初回・全般
+  general: [
+    '会社は赤字では潰れない。お金がなくなった時に潰れる。',
+    '決算書が読めないのは、数字が苦手だからじゃない。目標がないからだ。',
+    '黒字でも潰れる会社がある。利益ではなく、手元にいくら残っているかが全て。',
+    '「いくらあれば安心か」を決めた瞬間、数字の見え方が変わる。',
+    '決算書を読むのに計算能力はいらない。必要なのは「いくらにしたいか」という目標だけ。',
+  ],
+  // 健全な状態（A・B判定）
+  healthy: [
+    '晴れの日にこそ傘を借りておく。雨の日に銀行は貸してくれない。',
+    '節税できた万歳。でも会社は強くなっていない、ということがある。',
+    '100の利益から30の税金を払えば70残る。100を消して税金を0にする方が損。',
+    'お金に余裕がある時ほど気が大きくなる。使い道を決めていないお金が一番危ない。',
+    '現状維持は、立ち止まっているようで後退している。数字を見続けることが前に進むこと。',
+    '黒字の時、銀行は何も聞いてこない。赤字になった途端、質問が一変する。だから黒字のうちに動く。',
+  ],
+  // 警戒（C判定・警戒ライン付近）
+  warning: [
+    '手元の現金は「立て直すための時間」を買っている。',
+    'パーセンテージは忘れていい。見るべきは現金がいくらあるか、それだけ。',
+    '金利の負担より、毎月の返済額が会社を追い詰める。',
+    '比率を良くしても、明日の支払いができなければ意味がない。見るのは金額。',
+    '利益はこれから増える資産。現金は今ある資産。会社を守るのは「今あるほう」。',
+    '同じ数字でも、先月と今月では意味が違う。定期的に見ることで変化が見える。',
+  ],
+  // 危険（D・E判定・危険ライン）
+  danger: [
+    '困ってから銀行に頼んでも、傘は借りられない。',
+    '困ってから銀行に頭を下げても遅い。まだ動ける今のうちに相談する。',
+    '返済能力は2つある。これから稼ぐ力と、今持っている資産。両方を数えれば道は見える。',
+    '半年後を見ておく。未来が見えるだけで、今日の判断が変わる。',
+  ],
+  // 借入が重い
+  loan: [
+    '借金を全部利益で返さなきゃいけない、というのは大きな誤解。',
+    '利息を払うのは無駄金じゃない。いざという時に会社を守る時間を、利息で買っている。',
+    '銀行が「借りてください」と言ってくるなら、あなたの会社は問題ない証拠。',
+    '借金が減らないのは能力不足じゃない。成長したいのに慎重でもある、その両立の結果。',
+  ],
+  // 節税で利益が薄い
+  tax: [
+    '資金繰りを良くしたいなら、節税重視から利益重視に切り替える。それだけで景色が変わる。',
+  ],
+  // フッター
+  footer: [
+    '今この数字を見ている。それだけで、見ていない経営者より一歩前にいる。',
+    '半年前の自分が今日の数字を見ていたら、もっと早く手を打てた。だから今日も見る。',
+    '1つの数字だけ追いかけると、別のどこかが死角になる。全体を見る。それがこの画面の役割。',
+  ]
+};
+
+function pickAdvice(category) {
+  const arr = adviceData[category];
+  if (!arr || arr.length === 0) return '';
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getAdvices(scoreGrade, survivalMonths, fixedRatio, loanRatio) {
+  const result = [];
+  // メインアドバイス（状況に応じて）
+  if (scoreGrade === 'A' || scoreGrade === 'B') {
+    result.push({ text: pickAdvice('healthy'), type: '' });
+  } else if (scoreGrade === 'C') {
+    result.push({ text: pickAdvice('warning'), type: 'warning' });
+  } else {
+    result.push({ text: pickAdvice('danger'), type: 'danger' });
+  }
+  // 借入が重い場合（返済が売上の10%以上）
+  if (loanRatio > 0.10) {
+    result.push({ text: pickAdvice('loan'), type: 'warning' });
+  }
+  // フッター（必ず1つ）
+  result.push({ text: pickAdvice('footer'), type: '' });
+  return result;
+}
+
+let calcCount = parseInt(localStorage.getItem('cashflow_calc_count') || '0');
 
 // 季節変動パターン（売上の倍率）
 const patterns = {
@@ -2024,6 +2206,22 @@ function calculate() {
   </div>`;
 
   html += '</div>';
+
+  // === アドバイス ===
+  calcCount++;
+  localStorage.setItem('cashflow_calc_count', calcCount);
+  const fixedRatio = revenue > 0 ? (rent + salary + loan + other) / revenue : 0;
+  const loanRatio = revenue > 0 ? loan / revenue : 0;
+  const advices = getAdvices(scoreGrade, survivalMonths, fixedRatio, loanRatio);
+  advices.forEach(adv => {
+    if (adv.text) {
+      const cls = adv.type ? ' ' + adv.type : '';
+      html += `<div class="advice-box${cls}">
+        <div class="advice-text">${adv.text}</div>
+        <div class="advice-source">— 中小企業の財務チャンネル（森尾勝俊 / 古田土会計）の教えより</div>
+      </div>`;
+    }
+  });
 
   // === グラフ ===
   function toMan(v) { return Math.round(v / 10).toLocaleString(); }
