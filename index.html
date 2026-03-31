@@ -143,6 +143,59 @@
     background: #d4741f;
   }
 
+  /* ========== 業種テンプレート ========== */
+  .template-section {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .template-section-title {
+    font-size: 0.8rem;
+    color: #E8822A;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
+  }
+
+  .template-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .btn-template {
+    background: #2a2a2a;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    line-height: 1.4;
+  }
+
+  .btn-template:hover {
+    background: #3a3a3a;
+    border-color: #E8822A;
+  }
+
+  .btn-template .template-name {
+    display: block;
+    font-weight: 500;
+    color: #e0e0e0;
+  }
+
+  .btn-template .template-sub {
+    display: block;
+    font-size: 0.65rem;
+    color: #888;
+    margin-top: 2px;
+  }
+
   /* ========== 季節変動 ========== */
   .btn-season {
     background: #333;
@@ -1182,6 +1235,32 @@
   <div class="input-panel">
     <h2>基本情報を入力</h2>
 
+    <div class="template-section">
+      <div class="template-section-title">業種から始める</div>
+      <div class="template-buttons">
+        <button class="btn-template" onclick="applyTemplate('apparel')">
+          <span class="template-name">アパレルショップ</span>
+          <span class="template-sub">月商300万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('cafe')">
+          <span class="template-name">カフェ</span>
+          <span class="template-sub">月商150万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('salon')">
+          <span class="template-name">美容室</span>
+          <span class="template-sub">月商200万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('izakaya')">
+          <span class="template-name">飲食店</span>
+          <span class="template-sub">月商250万</span>
+        </button>
+        <button class="btn-template" onclick="applyTemplate('zakka')">
+          <span class="template-name">雑貨・小売店</span>
+          <span class="template-sub">月商200万</span>
+        </button>
+      </div>
+    </div>
+
     <div class="ocr-section">
       <div class="ocr-section-title">試算表・決算書から自動入力</div>
       <div class="ocr-apikey-row">
@@ -1292,6 +1371,142 @@
 </div>
 
 <script>
+// ========== 業種テンプレート ==========
+const templates = {
+  apparel: {
+    name: 'アパレルセレクトショップ（月商300万）',
+    cash: 10000,
+    revenue: 3000,
+    rent: 350,
+    salary: 800,
+    purchase: 1200,
+    loan: 150,
+    lineWarning: 10000,
+    lineDanger: 6000,
+    season: 'apparel',
+    detailRows: [
+      { category: '水道光熱費', amount: 60 },
+      { category: '通信費', amount: 25 },
+      { category: '広告宣伝費', amount: 80 },
+      { category: '支払手数料', amount: 50 },
+      { category: '消耗品費', amount: 30 },
+      { category: '雑費', amount: 20 }
+    ]
+  },
+  cafe: {
+    name: 'カフェ（月商150万）',
+    cash: 5000,
+    revenue: 1500,
+    rent: 200,
+    salary: 500,
+    purchase: 530,
+    loan: 100,
+    lineWarning: 5000,
+    lineDanger: 3000,
+    season: 'restaurant',
+    detailRows: [
+      { category: '水道光熱費', amount: 100 },
+      { category: '通信費', amount: 15 },
+      { category: '広告宣伝費', amount: 30 },
+      { category: '消耗品費', amount: 40 },
+      { category: '雑費', amount: 30 }
+    ]
+  },
+  salon: {
+    name: '美容室（月商200万）',
+    cash: 6000,
+    revenue: 2000,
+    rent: 250,
+    salary: 600,
+    purchase: 240,
+    loan: 120,
+    lineWarning: 6000,
+    lineDanger: 3500,
+    season: 'beauty',
+    detailRows: [
+      { category: '水道光熱費', amount: 80 },
+      { category: '通信費', amount: 20 },
+      { category: '広告宣伝費', amount: 70 },
+      { category: '消耗品費', amount: 40 },
+      { category: '雑費', amount: 40 }
+    ]
+  },
+  izakaya: {
+    name: '飲食店（月商250万）',
+    cash: 6000,
+    revenue: 2500,
+    rent: 400,
+    salary: 1000,
+    purchase: 830,
+    loan: 180,
+    lineWarning: 6000,
+    lineDanger: 3500,
+    season: 'restaurant',
+    detailRows: [
+      { category: '水道光熱費', amount: 200 },
+      { category: '通信費', amount: 25 },
+      { category: '広告宣伝費', amount: 80 },
+      { category: '消耗品費', amount: 70 },
+      { category: '雑費', amount: 70 }
+    ]
+  },
+  zakka: {
+    name: '雑貨・小売店（月商200万）',
+    cash: 5000,
+    revenue: 2000,
+    rent: 250,
+    salary: 500,
+    purchase: 900,
+    loan: 100,
+    lineWarning: 5000,
+    lineDanger: 3000,
+    season: 'retail',
+    detailRows: [
+      { category: '水道光熱費', amount: 60 },
+      { category: '通信費', amount: 20 },
+      { category: '広告宣伝費', amount: 50 },
+      { category: '消耗品費', amount: 40 },
+      { category: '雑費', amount: 40 }
+    ]
+  }
+};
+
+function applyTemplate(key) {
+  const t = templates[key];
+  if (!t) return;
+
+  // 既に入力がある場合は確認
+  const hasInput = ['cash','revenue','rent','salary','purchase','loan'].some(id => {
+    const val = document.getElementById(id).value.replace(/[,，\s]/g, '');
+    return val && parseInt(val) > 0;
+  });
+  if (hasInput && !confirm('「' + t.name + '」の数字で上書きしますか？')) return;
+
+  // 基本フィールドをセット
+  const fields = { cash: t.cash, revenue: t.revenue, rent: t.rent, salary: t.salary, purchase: t.purchase, loan: t.loan, lineWarning: t.lineWarning, lineDanger: t.lineDanger };
+  Object.entries(fields).forEach(([id, val]) => {
+    document.getElementById(id).value = val.toLocaleString();
+  });
+
+  // 経費詳細モードに切り替えて科目をセット
+  detailRows = t.detailRows.map(r => ({ ...r }));
+  const detailTotal = detailRows.reduce((sum, r) => sum + r.amount, 0);
+  document.getElementById('other').value = detailTotal.toLocaleString();
+  toggleDetail(true);
+  renderDetailRows();
+
+  // 季節変動パターンを適用
+  const indices = getMonthIndices();
+  const pattern = patterns[t.season];
+  monthlyRates = indices.map(idx => pattern[idx]);
+  document.querySelectorAll('.btn-season').forEach(b => b.classList.remove('active'));
+  renderSeasonPreview();
+  renderMonthlyGrid();
+
+  // 自動計算
+  calculate();
+}
+
 // 季節変動パターン（売上の倍率）
 const patterns = {
   flat:      [100,100,100,100,100,100,100,100,100,100,100,100],
